@@ -1,34 +1,5 @@
 from textnode import TextNode, TextType
-
-# def split_nodes_delimiter2(old_nodes, delimiter, text_type):
-#     limit_len = []
-#     new_text_type = None
-#     if not delimiter in old_nodes.text:
-#         raise Exception("Delimiter not in text")
-    
-#     for i in range(len(old_nodes.text)):
-#         if old_nodes.text[i] == "*" and old_nodes.text[i] == delimiter:
-#             new_text_type = TextType.ITALIC
-#             limit_len.append(i)
-#         if old_nodes.text[i] == "`" and old_nodes.text[i] == delimiter:
-#             new_text_type = TextType.CODE
-#             limit_len.append(i)
-#         if i>0:
-#             if old_nodes.text[i] == old_nodes.text[i-1]:
-#                 new_text_type = TextType.BOLD    
-#                 limit_len.append(i)
-    
-
-#     new_nodes = old_nodes.split(delimiter)
-#     if len(new_nodes)%2 == 0:
-#         raise Exception("Delimiter was not closed!")
-
-#     new_TextNode = [
-#         TextNode(new_nodes[0], text_type),
-#         TextNode(new_nodes[1], new_text_type),
-#         TextNode(new_nodes[2], text_type),
-#     ]
-#     return new_TextNode         
+import re
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
@@ -50,3 +21,124 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             else:
                 new_nodes.append(TextNode(texts[i],text_type))
     return new_nodes
+
+def extract_markdown_image(text):
+    matches = re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)" , text)
+    return matches
+
+def extract_markdown_link(text):
+    matches = re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)" , text)
+    return matches
+
+
+# def split_nodes_image(old_nodes):
+#     new_nodes = []
+#     for node in old_nodes:
+#         if node.text_type != TextType.TEXT:
+#             new_nodes.append(node)
+#             continue
+#         original_text = node.text
+#         image_tuple = extract_markdown_image(node.text)
+#         if len(image_tuple) == 0:
+#             new_nodes.append(node)
+#             continue
+#         for item in image_tuple:
+#             sections = original_text.split(f"![{item[0]}]({item[1]})", 1)
+#             if len(sections) != 2:
+#                 raise ValueError("Invalid markdown, image section not closed")
+#             if sections[0] != "":
+#                 new_nodes.append(TextNode(sections[0], TextType.TEXT))
+#             new_nodes.append(
+#                 TextNode(
+#                     item[0],
+#                     TextType.IMAGE,
+#                     item[1],
+#                 )
+#             )
+#             original_text = sections[1]
+#         if original_text != "":
+#             new_nodes.append(TextNode(original_text, TextType.TEXT))
+#     return new_nodes
+def split_nodes_image(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
+            continue
+        original_text = old_node.text
+        images = extract_markdown_image(original_text)
+        if len(images) == 0:
+            new_nodes.append(old_node)
+            continue
+        for image in images:
+            sections = original_text.split(f"![{image[0]}]({image[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("Invalid markdown, image section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(
+                TextNode(
+                    image[0],
+                    TextType.IMAGE,
+                    image[1],
+                )
+            )
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.TEXT))
+    return new_nodes
+
+# def split_nodes_link(old_nodes):
+#     new_nodes = []
+#     for node in old_nodes:
+#         if node.text_type != TextType.TEXT:
+#             new_nodes.append(node)
+#             continue
+#         original_text = node.text
+#         link_tuple = extract_markdown_link(node.text)
+#         if len(link_tuple) == 0:
+#             new_nodes.append(node)
+#             continue
+#         for item in link_tuple:
+#             sections = original_text.split(f"[{item[0]}]({item[1]})", 1)
+#             if len(sections) != 2:
+#                 raise ValueError("Invalid markdown, link section not closed")
+#             if sections[0] != "":
+#                 new_nodes.append(TextNode(sections[0], TextType.TEXT))
+#             new_nodes.append(TextNode(item[0], TextType.LINK, item[1]))
+#             original_text = sections[1]
+#         if original_text != "":
+#             new_nodes.append(TextNode(original_text, TextType.TEXT))
+#     return new_nodes
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
+            continue
+        original_text = old_node.text
+        links = extract_markdown_link(original_text)
+        if len(links) == 0:
+            new_nodes.append(old_node)
+            continue
+        for link in links:
+            sections = original_text.split(f"[{link[0]}]({link[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("Invalid markdown, link section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(link[0], TextType.LINK, link[1]))
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.TEXT))
+    return new_nodes
+
+def text_to_textnodes(text):
+    nodes = [TextNode(text,TextType.TEXT)]
+    nodes = split_nodes_delimiter(nodes,"**",TextType.BOLD)
+    nodes = split_nodes_delimiter(nodes,"*",TextType.ITALIC)
+    nodes = split_nodes_delimiter(nodes,"`",TextType.CODE)
+    nodes = split_nodes_image(nodes)
+    nodes = split_nodes_link(nodes)
+    return nodes
+                 
