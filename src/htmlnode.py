@@ -40,6 +40,7 @@ class ParentNode(HTMLNode):
         super().__init__(tag, None, children, props)
 
     def __repr__(self):
+        return ""
         return f"ParentNode({self.tag}, children: {self.children[0]}, {self.props})"
 
     def to_html(self):
