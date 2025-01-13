@@ -107,25 +107,14 @@ def create_html_from_markdown(block_text, block_type):
     #for ordered and unordered list:
     if isinstance(block_text, list):
         children = []
-        nodes = []
         for block in block_text:
             text_nodes = text_to_textnodes(block)
-            print(text_nodes)
             for text_node in text_nodes:
                 html_node = text_node_to_html_node(text_node)
                 node = ParentNode("li", html_node)
                 children.append(node)
-            # nodes.append(ParentNode("li", children))
         return ParentNode(html_type, children)
-
-
-        #     # print("TEST")
-        #     node = LeafNode("li",block)
-        #     nodes.append(node)
-        # # print(nodes)
-        # node = ParentNode(html_type,nodes)
-        # return [node]
-
+    
     #for quote, heading and paragraph:
     elif isinstance(block_text, str):
         text_nodes = text_to_textnodes(block_text)

@@ -40,7 +40,9 @@ class ParentNode(HTMLNode):
         super().__init__(tag, None, children, props)
 
     def __repr__(self):
-        return ""
+        # return ""
+        if not isinstance(self.children, list):
+            self.children = [self.children]
         return f"ParentNode({self.tag}, children: {self.children[0]}, {self.props})"
 
     def to_html(self):
@@ -49,6 +51,8 @@ class ParentNode(HTMLNode):
         if self.children is None:
             raise ValueError("Children not listed")
         children_html=""
+        if not isinstance(self.children, list):
+            self.children = [self.children]
         for child in self.children:
             children_html += child.to_html()
         string= f'<{self.tag}{self.props_to_html()}>{children_html}</{self.tag}>'
